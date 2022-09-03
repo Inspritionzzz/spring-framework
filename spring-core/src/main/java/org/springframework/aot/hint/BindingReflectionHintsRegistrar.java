@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.context.aot;
+package org.springframework.aot.hint;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -29,9 +29,6 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.aot.hint.ExecutableMode;
-import org.springframework.aot.hint.MemberCategory;
-import org.springframework.aot.hint.ReflectionHints;
 import org.springframework.core.KotlinDetector;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
@@ -40,10 +37,10 @@ import org.springframework.util.ClassUtils;
 
 /**
  * Register the necessary reflection hints so that the specified type can be
- * bound at runtime. Fields, constructors and property methods are registered,
- * except for a set of types like those in the {@code java.} package where just
- * the type is registered. Types are discovered transitively and generic types
- * are registered as well.
+ * bound at runtime. Fields, constructors, properties and record components
+ * are registered, except for a set of types like those in the {@code java.}
+ * package where just the type is registered.
+ * Types are discovered transitively and generic type are registered as well.
  *
  * @author Sebastien Deleuze
  * @since 6.0

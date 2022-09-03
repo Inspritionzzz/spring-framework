@@ -28,6 +28,7 @@ import org.springframework.aot.generate.GeneratedClasses;
 import org.springframework.aot.generate.GeneratedFiles;
 import org.springframework.aot.generate.GenerationContext;
 import org.springframework.aot.hint.MemberCategory;
+import org.springframework.aot.hint.ReflectionHints;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.TypeReference;
 import org.springframework.context.ApplicationContext;
@@ -111,6 +112,7 @@ public class TestContextAotGenerator {
 		mergedConfigMappings.forEach((mergedConfig, testClasses) -> {
 			logger.debug(LogMessage.format("Generating AOT artifacts for test classes %s",
 					testClasses.stream().map(Class::getName).toList()));
+			registerHintsForMergedConfig(mergedConfig);
 			try {
 				// Use first test class discovered for a given unique MergedContextConfiguration.
 				Class<?> testClass = testClasses.get(0);
@@ -196,6 +198,10 @@ public class TestContextAotGenerator {
 	MergedContextConfiguration buildMergedContextConfiguration(Class<?> testClass) {
 		TestContextBootstrapper testContextBootstrapper =
 				BootstrapUtils.resolveTestContextBootstrapper(testClass);
+		registerDeclaredConstructors(testContextBootstrapper.getClass());
+		testContextBootstrapper.getTestExecutionListeners().stream()
+				.map(Object::getClass)
+				.forEach(this::registerDeclaredConstructors);
 		return testContextBootstrapper.buildMergedContextConfiguration();
 	}
 
@@ -220,8 +226,21 @@ public class TestContextAotGenerator {
 				new AotTestMappingsCodeGenerator(initializerClassMappings, generatedClasses);
 		generationContext.writeGeneratedContent();
 		String className = codeGenerator.getGeneratedClass().getName().reflectionName();
-		this.runtimeHints.reflection().registerType(TypeReference.of(className),
-				builder -> builder.withMembers(MemberCategory.INVOKE_PUBLIC_METHODS));
+		this.runtimeHints.reflection()
+				.registerType(TypeReference.of(className), MemberCategory.INVOKE_PUBLIC_METHODS);
+	}
+
+	private void registerHintsForMergedConfig(MergedContextConfiguration mergedConfig) {
+		ContextLoader contextLoader = mergedConfig.getContextLoader();
+		if (contextLoader != null) {
+			registerDeclaredConstructors(contextLoader.getClass());
+		}
+		mergedConfig.getContextInitializerClasses().forEach(this::registerDeclaredConstructors);
+	}
+
+	private void registerDeclaredConstructors(Class<?> type) {
+		ReflectionHints reflectionHints = this.runtimeHints.reflection();
+		reflectionHints.registerType(type, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
 	}
 
 }

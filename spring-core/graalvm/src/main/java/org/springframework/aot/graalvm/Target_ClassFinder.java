@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.messaging.simp.annotation;
+package org.springframework.aot.graalvm;
 
-import org.springframework.aot.hint.RuntimeHints;
-import org.springframework.aot.hint.RuntimeHintsRegistrar;
-import org.springframework.aot.hint.support.RuntimeHintsUtils;
+import com.oracle.svm.core.annotate.Alias;
+import com.oracle.svm.core.annotate.TargetClass;
 
 /**
- * {@link RuntimeHintsRegistrar} implementation that makes Simp annotations
- * available at runtime.
+ * Allow to reference {@code com.sun.beans.finder.ClassFinder} from
+ * {@link Target_Introspector}.
  *
  * @author Sebastien Deleuze
  * @since 6.0
  */
-public class SimpAnnotationsRuntimeHints implements RuntimeHintsRegistrar {
+@TargetClass(className = "com.sun.beans.finder.ClassFinder")
+final class Target_ClassFinder {
 
-	@Override
-	@SuppressWarnings("deprecation")
-	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
-		RuntimeHintsUtils.registerSynthesizedAnnotation(hints, SendToUser.class);
+	@Alias
+	public static Class<?> findClass(String name, ClassLoader loader) throws ClassNotFoundException {
+		return null;
 	}
-
 }

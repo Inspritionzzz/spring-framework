@@ -14,30 +14,28 @@
  * limitations under the License.
  */
 
-package org.springframework.messaging.handler.annotation;
+package org.springframework.beans.factory.annotation;
 
 import java.util.stream.Stream;
 
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
-import org.springframework.aot.hint.support.RuntimeHintsUtils;
-import org.springframework.lang.Nullable;
-import org.springframework.stereotype.Controller;
+import org.springframework.util.ClassUtils;
 
 /**
- * {@link RuntimeHintsRegistrar} implementation that makes messaging
- * annotations available at runtime.
+ * {@link RuntimeHintsRegistrar} for Jakarta annotations.
+ * <p>Hints are only registered if Jakarta inject is on the classpath.
  *
- * @author Sebastien Deleuze
- * @since 6.0
+ * @author Brian Clozel
  */
-public class MessagingAnnotationsRuntimeHints implements RuntimeHintsRegistrar {
+class JakartaAnnotationsRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
-	@SuppressWarnings("deprecation")
-	public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
-		Stream.of(Controller.class, Header.class, Headers.class, Payload.class).forEach(annotationType ->
-				RuntimeHintsUtils.registerSynthesizedAnnotation(hints, annotationType));
+	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+		if (ClassUtils.isPresent("jakarta.inject.Inject", classLoader)) {
+			Stream.of("jakarta.inject.Inject", "jakarta.inject.Qualifier").forEach(annotationType ->
+					hints.reflection().registerType(ClassUtils.resolveClassName(annotationType, classLoader)));
+		}
 	}
 
 }
