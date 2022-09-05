@@ -60,4 +60,5 @@ settings.gradle.projectsLoaded {
 	}
 }
 include 'spring-deep-thinking'
+include 'spring-thinking'
 
